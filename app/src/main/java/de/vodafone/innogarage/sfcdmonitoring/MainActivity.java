@@ -13,19 +13,18 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javax.xml.transform.Result;
 
 public class MainActivity extends AppCompatActivity {
     //Define socket variables (ports)
@@ -83,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                             try {
-                                setValues(result);
+                                SetValuesInTable(result);
                             }
                             catch (JSONException e){
                                 System.out.println("Could not set values for JSON Object");
@@ -101,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     /*------------Methods for displaying the data on the list--------------*/
-    public void setValues(JSONObject jobj) throws JSONException {
+  /*  public void setValues(JSONObject jobj) throws JSONException {
         //Integer tag = (Integer) marker.getTag();
         msgList.clear();
         //JSONObject dataset = jobj.getJSONObject(String.valueOf(tag));
@@ -160,9 +159,102 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+*/
 
 
+    public void SetValuesInTable(JSONObject jobj) throws JSONException{
+        JSONObject dataset = jobj;
+        Iterator<?> keys = dataset.keys();
 
+        final TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
+        detailsTable.removeAllViews();
+        final TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+        TextView tv;
+
+
+        while(keys.hasNext()) {
+
+            String mKey = (String) keys.next();
+
+            switch (mKey) {
+                case "location":
+                    JSONObject locObject = dataset.getJSONObject("location");
+                    Iterator<?> locKey = locObject.keys();
+
+                    while (locKey.hasNext()){
+                        String iKey = (String) locKey.next();
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(locObject.getString(iKey));
+                        detailsTable.addView(tableRow);
+                    }
+
+                    break;
+
+                case "intrafreq":
+                    JSONObject inaObject = dataset.getJSONArray("intrafreq").getJSONObject(0);
+                    Iterator<?> inaKey = inaObject.keys();
+
+                    while (inaKey.hasNext()){
+                        String iKey = (String) inaKey.next();
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(inaObject.getString(iKey));
+                        detailsTable.addView(tableRow);
+                    }
+
+                    break;
+
+                case "interfreq":
+                    JSONObject ineObject = dataset.getJSONArray("interfreq").getJSONObject(0);
+                    Iterator<?> ineKey = ineObject.keys();
+
+                    while (ineKey.hasNext()){
+                        String iKey = (String) ineKey.next();
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(ineObject.getString(iKey));
+                        detailsTable.addView(tableRow);
+                    }
+
+                case "serving":
+                    JSONObject servObject = dataset.getJSONArray("serving").getJSONObject(0);
+                    Iterator<?> sKey = servObject.keys();
+
+                    while (sKey.hasNext()){
+                        String iKey = (String) sKey.next();
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(servObject.getString(iKey));
+                        detailsTable.addView(tableRow);
+                    }
+
+                case "gstatus":
+                    JSONObject gstatObject = dataset.getJSONObject("gstatus");
+                    Iterator<?> gKey = gstatObject.keys();
+
+                    while (gKey.hasNext()){
+                        String iKey = (String) gKey.next();
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(gstatObject.getString(iKey));
+                        detailsTable.addView(tableRow);
+                    }
+                default:
+
+                    break;
+            }
+
+
+        }
+
+
+    }
 
 
 
@@ -180,9 +272,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
-            View row = inflater.inflate(R.layout.list_row, parent , false);
-            Button button = (Button) row.findViewById(R.id.bt_details);
-            TextView tv_hostname = (TextView) row.findViewById(R.id.side_name);
+            View row = inflater.inflate(R.layout.clients_list, parent , false);
+            Button button = (Button) row.findViewById(R.id.detailsButton);
+            TextView tv_hostname = (TextView) row.findViewById(R.id.client_name);
             TextView tv_clientIP = (TextView) row.findViewById(R.id.client_ip);
 
 
@@ -213,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
 
                 button.setBackgroundColor(Color.GRAY);
-                button.setText("-");
+
             }
 
             return row;

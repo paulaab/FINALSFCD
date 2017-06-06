@@ -6,6 +6,68 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
 
+    >
 
-    ></LinearLayout>
 
+    <!--Layout for buttons that send warnings and messages-->
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="2">
+
+        <ListView
+            android:id="@+id/DeviceDetail"
+            android:layout_width="match_parent"
+            android:layout_height="559dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            map:layout_constraintBottom_toBottomOf="parent"
+            map:layout_constraintHorizontal_bias="0.0"
+            map:layout_constraintLeft_toLeftOf="parent"
+            map:layout_constraintRight_toRightOf="parent"
+            tools:layout_editor_absoluteY="196dp" />
+
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/Buttonssss"
+            android:layout_width="match_parent"
+            android:layout_height="165dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            map:layout_constraintBottom_toTopOf="@+id/DeviceDetail"
+            map:layout_constraintHorizontal_bias="0.496"
+            map:layout_constraintLeft_toLeftOf="parent"
+            map:layout_constraintRight_toRightOf="parent"
+            map:layout_constraintTop_toTopOf="parent"
+            map:layout_constraintVertical_bias="0.053">
+
+            <LinearLayout
+                android:id="@+id/BttonLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>
+
+    </android.support.constraint.ConstraintLayout>
+
+    <!-- Layout for the map itself-->
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1">
+<!--
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="com.vodafone.innogaragepb.geomapp.MainActivity" /> -->
+    </LinearLayout>
+
+
+</LinearLayout>
