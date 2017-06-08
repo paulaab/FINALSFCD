@@ -17,9 +17,13 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.github.aakira.expandablelayout.ExpandableRelativeLayout;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +31,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
+    ExpandableRelativeLayout expandableLayout1, expandableLayout2, expandableLayout3, expandableLayout4, expandableLayout5;
     //Define socket variables (ports)
     public static boolean debugMode = true;
     public static int socketPortForBroadcast = 45555;
@@ -53,10 +58,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         globalContext = this;
         /*---------------List of messages initialization - MSG-----------------*/
-        msgView = (ListView) findViewById(R.id.lv1);
+        /*msgView = (ListView) findViewById(R.id.lv1);
         msgList = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1);
-        msgView.setAdapter(msgList);
+        msgView.setAdapter(msgList);*/
 
         final Button button = (Button) findViewById(R.id.buttonInvitation);
         button.setOnClickListener(new View.OnClickListener(){
@@ -79,14 +84,15 @@ public class MainActivity extends AppCompatActivity {
 
                             ListView listDevices = (ListView) findViewById(R.id.mSFCDList);
                             listDevices.setAdapter(new ListViewAdapter(globalContext, conMan));
+                            //TableLayout tableLayout = (TableLayout) findViewById(R.id.detailsTable);
+                            //tableLayout.removeAllViews();
 
-
-                            try {
+                           try {
                                 SetValuesInTable(result);
-                            }
-                            catch (JSONException e){
-                                System.out.println("Could not set values for JSON Object");
-                            }
+                           }
+                           catch (JSONException e){
+                                System.out.println("Could not set values in table for JSON Object");
+                           }
 
                         }
                     }
@@ -100,78 +106,287 @@ public class MainActivity extends AppCompatActivity {
 
     }
     /*------------Methods for displaying the data on the list--------------*/
-  /*  public void setValues(JSONObject jobj) throws JSONException {
-        //Integer tag = (Integer) marker.getTag();
-        msgList.clear();
-        //JSONObject dataset = jobj.getJSONObject(String.valueOf(tag));
-
-        JSONObject dataset = jobj;
-        Iterator<?> keys = dataset.keys();
-        list = new ArrayList<>();
-        while(keys.hasNext()){
 
 
-            String mKey = (String)keys.next();
 
-            switch (mKey){
-                case "IntraFreq":
-                    list.add("IntraFreq   >>");
-                    break;
-                case "InterFreq":
-                    list.add("InterFreq   >>");
-                    break;
-                case "PCC RxD RSSI":
-                    list.add("PCC RxD RSSI   >>");
+public void SetValuesInTable(JSONObject jobj) throws JSONException{
+    JSONObject dataset = jobj;
+    Iterator<?> keys = dataset.keys();
 
+    while (keys.hasNext()){
+        String mKey = (String) keys.next();
+        switch (mKey){
+            case "location":
+                try{
+                    JSONObject lobj = dataset.getJSONObject("location");
+                    if (lobj != null){
+                        Iterator<?> lkeys = lobj.keys();
+                        while (lkeys.hasNext()){
+                            int id = getResources().getIdentifier(String.valueOf(lkeys), "id", getPackageName());
+                            TextView temp = (TextView) findViewById(id);
+                            temp.setText(lobj.getString(String.valueOf(lkeys)));
+                        }
+                    }
+                }
+                catch (JSONException e){
+                    System.out.println("Could not extract location object -->");
+                    e.printStackTrace();
                     break;
-                case "PCC RxM RSSI":
-                    list.add("PCC RxM RSSI   >>");
+                }
+                break;
+
+            case "gstatus":
+                try{
+                    JSONObject gobj = dataset.getJSONObject("gstatus");
+                    if(gobj!= null){
+                        Iterator<?> gKey = gobj.keys();
+                        while (gKey.hasNext()){
+                            if (String.valueOf(gKey) == "ltebw(mhz)"){
+                                TextView temp = (TextView) findViewById(R.id.ltebw);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+                            }
+                            else if(String.valueOf(gKey) == "rsrp(dbm)pccrxdrssi"){
+                                TextView temp = (TextView) findViewById(R.id.pccrxdrssi);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+
+                            }
+                            else if(String.valueOf(gKey) == "rsrp(dbm)pccrxmrssi"){
+                                TextView temp = (TextView) findViewById(R.id.pccrxrmrssi);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+
+                            }
+                            else if(String.valueOf(gKey) == "rsrq(db)"){
+                                TextView temp = (TextView) findViewById(R.id.grsrq);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+
+
+                            }
+                            else if(String.valueOf(gKey) == "sinr(db)"){
+                                TextView temp = (TextView) findViewById(R.id.gsinr);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+                            }
+
+                            else if(String.valueOf(gKey) == "mode"){
+                                TextView temp = (TextView) findViewById(R.id.gmode);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+
+                            }
+                            else{
+                                int id = getResources().getIdentifier(String.valueOf(gKey), "id", getPackageName());
+                                TextView temp = (TextView) findViewById(id);
+                                temp.setText(gobj.getString(String.valueOf(gKey)));
+                            }
+
+
+                        }
+                    }
+                }
+                catch (JSONException e){
+                    System.out.println("Could not extract gstatus object -->");
+                    e.printStackTrace();
                     break;
-                case "Serving":
-                    list.add("Serving   >>");
+                }
+                break;
+
+
+            case "serving":
+                try {
+                    JSONArray sarr = dataset.getJSONArray("serving");
+                    if(sarr!=null){
+                        JSONObject sobj= sarr.getJSONObject(0);
+                        Iterator<?> sKey = sobj.keys();
+                        while (sKey.hasNext()){
+                            if (String.valueOf(sKey)=="EARFCN"){
+                                    TextView temp = (TextView) findViewById(R.id.searfcn);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="MCC"){
+                                    TextView temp = (TextView) findViewById(R.id.smcc);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="MNC"){
+                                    TextView temp = (TextView) findViewById(R.id.smnc);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="TAC"){
+                                    TextView temp = (TextView) findViewById(R.id.stac);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="CID"){
+                                    TextView temp = (TextView) findViewById(R.id.scid);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="Bd"){
+                                    TextView temp = (TextView) findViewById(R.id.sbd);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="D"){
+                                    TextView temp = (TextView) findViewById(R.id.sd);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="U"){
+                                    TextView temp = (TextView) findViewById(R.id.su);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="SNR"){
+                                    TextView temp = (TextView) findViewById(R.id.ssnr);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="PCI"){
+                                    TextView temp = (TextView) findViewById(R.id.spci);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="RSRQ"){
+                                    TextView temp = (TextView) findViewById(R.id.srsrq);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="RSRP"){
+                                    TextView temp = (TextView) findViewById(R.id.srsrp);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="RSSI"){
+                                    TextView temp = (TextView) findViewById(R.id.srssi);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                            else if(String.valueOf(sKey)=="RXLV"){
+                                    TextView temp = (TextView) findViewById(R.id.srxlv);
+                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
+                        }
+                    }
+
+                }catch (JSONException e){
+                    System.out.println("Could not extract serving object -->");
+                    e.printStackTrace();
                     break;
-                case "sats":
-                    list.add("Sats   >>");
+                }
+                break;
+
+            case "interfreq":
+                try {
+                    JSONArray itearr = dataset.getJSONArray("interfreq");
+                    if(itearr!=null){
+                        JSONObject iteobj= itearr.getJSONObject(0);
+                        Iterator<?> iteKey = iteobj.keys();
+                        while (iteKey.hasNext()){
+                            if (String.valueOf(iteKey)=="EARFCN"){
+                                TextView temp = (TextView) findViewById(R.id.iteearfcn);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="ThresholdLow"){
+                                TextView temp = (TextView) findViewById(R.id.thresholdlow);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="ThresholdHi"){
+                                TextView temp = (TextView) findViewById(R.id.thresholdhi);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="Priority"){
+                                TextView temp = (TextView) findViewById(R.id.priority);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="PCI"){
+                                TextView temp = (TextView) findViewById(R.id.itepci);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="RSRQ"){
+                                TextView temp = (TextView) findViewById(R.id.itersrq);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="RSRP"){
+                                TextView temp = (TextView) findViewById(R.id.itersrp);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="RSSI"){
+                                TextView temp = (TextView) findViewById(R.id.iterssi);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                            else if (String.valueOf(iteKey)=="RXLV"){
+                                TextView temp = (TextView) findViewById(R.id.iterxlv);
+                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
+                            }
+                        }
+                    }
+
+                }catch (JSONException e){
+                    System.out.println("Could not extract interfreq object -->");
+                    e.printStackTrace();
                     break;
-                case "latitude":
-                    list.add("Latitude: "+dataset.getString(mKey));
+                }
+                break;
+
+            case "intrafreq":
+                try {
+                    JSONArray itaarr = dataset.getJSONArray("intrafreq");
+                    if(itaarr!=null){
+                        JSONObject itaobj1= itaarr.getJSONObject(0);
+                        Iterator<?> itaKey = itaobj1.keys();
+                        while (itaKey.hasNext()){
+                            if (String.valueOf(itaKey)=="PCI"){
+                                TextView temp = (TextView) findViewById(R.id.itapci1);
+                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey)=="RSRQ"){
+                                TextView temp = (TextView) findViewById(R.id.itarsrq1);
+                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey)=="RSRP"){
+                                TextView temp = (TextView) findViewById(R.id.itarsrp1);
+                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey)=="RSSI"){
+                                TextView temp = (TextView) findViewById(R.id.itarssi1);
+                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey)=="RXLV"){
+                                TextView temp = (TextView) findViewById(R.id.itarxlv1);
+                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
+                            }
+
+                        }
+                        JSONObject itaobj2= itaarr.getJSONObject(1);
+                        Iterator<?> itaKey2 = itaobj2.keys();
+                        while (itaKey.hasNext()){
+                            if (String.valueOf(itaKey2)=="PCI"){
+                                TextView temp = (TextView) findViewById(R.id.itapci2);
+                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey2)=="RSRQ"){
+                                TextView temp = (TextView) findViewById(R.id.itarsrq2);
+                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey2)=="RSRP"){
+                                TextView temp = (TextView) findViewById(R.id.itarsrp2);
+                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey2)=="RSSI"){
+                                TextView temp = (TextView) findViewById(R.id.itarssi2);
+                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
+                            }
+                            else if (String.valueOf(itaKey2)=="RXLV"){
+                                TextView temp = (TextView) findViewById(R.id.itarxlv2);
+                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
+                            }
+
+                        }
+                    }
+
+                }catch (JSONException e){
+                    System.out.println("Could not extract interfreq object -->");
+                    e.printStackTrace();
                     break;
-                case "longitude":
-                    list.add("Longitude: "+dataset.getString(mKey));
-                    break;
-                case "altitude m":
-                    list.add("Altitude: "+dataset.getString(mKey));
-                    break;
-                default:
-                    list.add(mKey.substring(0,1).toUpperCase()+mKey.substring(1) + ": "+dataset.getString(mKey));
-                    break;
-            }
+                }
+                break;
+
+            default:
+                break;
+
+
         }
-        Collections.sort(list);
-        System.out.println (list);
-        msgList = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1, list);
-        //Display msg on list
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                msgView.setAdapter(msgList);
-                msgView.smoothScrollToPosition(msgList.getCount() - 1);
-            }
-        });
-    }
-*/
 
+    }
+
+
+}
+
+
+
+
+/*
 
     public void SetValuesInTable(JSONObject jobj) throws JSONException{
         JSONObject dataset = jobj;
         Iterator<?> keys = dataset.keys();
 
-        final TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
-        detailsTable.removeAllViews();
-        final TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-        TextView tv;
 
-
+        //TableLayout mTable = (TableLayout) findViewById(R.id.detailsTable);
+        //mTable.removeAllViews();
         while(keys.hasNext()) {
 
             String mKey = (String) keys.next();
@@ -182,11 +397,16 @@ public class MainActivity extends AppCompatActivity {
                     Iterator<?> locKey = locObject.keys();
 
                     while (locKey.hasNext()){
+                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
+
+                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+                        TextView tv;
                         String iKey = (String) locKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(iKey);
                         tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
                         tv.setText(locObject.getString(iKey));
+
                         detailsTable.addView(tableRow);
                     }
 
@@ -197,11 +417,16 @@ public class MainActivity extends AppCompatActivity {
                     Iterator<?> inaKey = inaObject.keys();
 
                     while (inaKey.hasNext()){
+                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
+
+                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+                        TextView tv;
                         String iKey = (String) inaKey.next();
                         tv = (TextView) tableRow.findViewById(R.id.dataValue);
                         tv.setText(iKey);
                         tv = (TextView) tableRow.findViewById(R.id.dataKey);
                         tv.setText(inaObject.getString(iKey));
+
                         detailsTable.addView(tableRow);
                     }
 
@@ -212,11 +437,16 @@ public class MainActivity extends AppCompatActivity {
                     Iterator<?> ineKey = ineObject.keys();
 
                     while (ineKey.hasNext()){
+                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
+
+                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+                        TextView tv;
                         String iKey = (String) ineKey.next();
                         tv = (TextView) tableRow.findViewById(R.id.dataValue);
                         tv.setText(iKey);
                         tv = (TextView) tableRow.findViewById(R.id.dataKey);
                         tv.setText(ineObject.getString(iKey));
+
                         detailsTable.addView(tableRow);
                     }
 
@@ -225,11 +455,16 @@ public class MainActivity extends AppCompatActivity {
                     Iterator<?> sKey = servObject.keys();
 
                     while (sKey.hasNext()){
+                         TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
+
+                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+                        TextView tv;
                         String iKey = (String) sKey.next();
                         tv = (TextView) tableRow.findViewById(R.id.dataValue);
                         tv.setText(iKey);
                         tv = (TextView) tableRow.findViewById(R.id.dataKey);
                         tv.setText(servObject.getString(iKey));
+
                         detailsTable.addView(tableRow);
                     }
 
@@ -238,11 +473,16 @@ public class MainActivity extends AppCompatActivity {
                     Iterator<?> gKey = gstatObject.keys();
 
                     while (gKey.hasNext()){
+                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
+
+                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+                        TextView tv;
                         String iKey = (String) gKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(iKey);
                         tv = (TextView) tableRow.findViewById(R.id.dataKey);
+                        tv.setText(iKey);
+                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
                         tv.setText(gstatObject.getString(iKey));
+
                         detailsTable.addView(tableRow);
                     }
                 default:
@@ -254,7 +494,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-    }
+        //final TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
+
+
+
+
+
+    }*/
 
 
 
@@ -268,6 +514,8 @@ public class MainActivity extends AppCompatActivity {
             this.conMan = conMan;
             context = c;
         }
+
+
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -305,6 +553,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
 
                 button.setBackgroundColor(Color.GRAY);
+                button.setText("--");
 
             }
 
@@ -326,6 +575,36 @@ public class MainActivity extends AppCompatActivity {
             return position;
         }
     }
+    public void expandableButton1(View view) {
+        expandableLayout1 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout1);
+        expandableLayout1.toggle(); // toggle expand and collapse
+    }
+
+    public void expandableButton2(View view) {
+        expandableLayout2 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout2);
+        expandableLayout2.toggle(); // toggle expand and collapse
+    }
+
+    public void expandableButton3(View view) {
+        expandableLayout3 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout3);
+        expandableLayout3.toggle(); // toggle expand and collapse
+    }
+
+    public void expandableButton4(View view) {
+        expandableLayout4 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout4);
+        expandableLayout4.toggle(); // toggle expand and collapse
+    }
+
+    public void expandableButton5(View view) {
+        expandableLayout5 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout5);
+        expandableLayout5.toggle(); // toggle expand and collapse
+    }
+
+
+
+
+
+
 
 
 

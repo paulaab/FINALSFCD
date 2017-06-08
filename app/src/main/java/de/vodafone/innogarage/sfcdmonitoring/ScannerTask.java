@@ -1,6 +1,7 @@
 package de.vodafone.innogarage.sfcdmonitoring;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.TableLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,42 +18,50 @@ public class ScannerTask extends AsyncTask<ConnectionManager, Void, JSONObject> 
 
 
 
-        ConnectionManager serverConnection = null;
+        ConnectionManager conMan = null;
         if(params.length == 1)
-            serverConnection = params[0];
+            conMan = params[0];
 
-        Connection incomingMessages = null;
+        Connection con = null;
         List<JSONObject> msgList = null;
         JSONObject actMsg = null;
         //CopyOnWriteArrayList<String> rs = new CopyOnWriteArrayList<>();
         List<Connection> cons = null;
 
-        if(!serverConnection.getConnections().isEmpty()){
+        if(!conMan.getConnections().isEmpty()){
 
-            cons = serverConnection.getConnections();
+            cons = conMan.getConnections();
 
+            for(Connection temp : cons){
 
-            if(incomingMessages == null){
-                incomingMessages = cons.get(0);
+                if(temp.isFocus()){
+                    con = temp;
+                }
+            }
+            if(con == null){
+                con = cons.get(0); //Default connection
             }
 
-            msgList = incomingMessages.getIncomingData();
+            msgList = con.getIncomingData();
 
             if(!msgList.isEmpty()) {
 
                 System.out.print("Received msglist");
                 actMsg = msgList.get(0);
                 msgList.remove(0);
-
-                if (actMsg.length()==0){
+                if (actMsg == null){
                     try {
-                        actMsg.put("Value", "0");
+                        actMsg.put("Value","Error");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
-
                 }
+
+
+
+
+
+
             }
         }
         return actMsg;

@@ -58,11 +58,13 @@ public class Connection {
             JSONObject jObj = null;
             while (!close) {
                 try {
+                    //inmsg = breader.readLine();
+
                     char[] b = new char[1024];
                     int count = breader.read(b, 0, 1024);
                     inmsg = new String(b, 0, count);
                     inmsg = inmsg.substring(8);
-                    System.out.println("Incomming message stream received:  " + inmsg);
+                    System.out.println(socket.getInetAddress() + "     Incomming message stream received:  " + inmsg);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -72,8 +74,12 @@ public class Connection {
                         jObj = new JSONObject(inmsg);
 
                     } catch (JSONException e) {
-                        e.printStackTrace();
-                        Log.e("InputStreamThread: ", "Could not save Json Object with incoming stream");
+                        //e.printStackTrace();
+
+                        Log.e("InputStreamThread: ", socket.getInetAddress() + "   Could not save Json Object with incoming stream");
+                       jObj = new JSONObject();
+
+
                     }
                     incomingData.add(jObj);
                     Log.e("Connection: ", socket.getInetAddress() + " Message received: " + jObj.toString() + " => Placed in incomingData, parsed as JSON");
