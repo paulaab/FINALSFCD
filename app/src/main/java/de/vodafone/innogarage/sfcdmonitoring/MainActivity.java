@@ -84,15 +84,74 @@ public class MainActivity extends AppCompatActivity {
 
                             ListView listDevices = (ListView) findViewById(R.id.mSFCDList);
                             listDevices.setAdapter(new ListViewAdapter(globalContext, conMan));
+                            Iterator<?> keys = result.keys();
+                            TextView temp;
+                            while (keys.hasNext()) {
+                                String mKey = (String) keys.next();
+                                switch (mKey) {
+                                    case "gstatus":
+                                        try {
+                                            JSONObject gobj = result.getJSONObject("gstatus");
+                                            temp = (TextView) findViewById(R.id.ltebw);
+                                            temp.setText(gobj.getString("ltebw(mhz)"));
+                                            temp = (TextView) findViewById(R.id.pccrxdrssi);
+                                            temp.setText(gobj.getString("rsrp(dbm)pccrxdrssi"));
+                                            temp = (TextView) findViewById(R.id.pccrxrmrssi);
+                                            temp.setText(gobj.getString("rsrp(dbm)pccrxmrssi"));
+                                            temp = (TextView) findViewById(R.id.grsrq);
+                                            temp.setText(gobj.getString("rsrq(db)"));
+                                            temp = (TextView) findViewById(R.id.gsinr);
+                                            temp.setText(gobj.getString("sinr(db)"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+                                            temp = (TextView) findViewById(R.id.gmode);
+                                            temp.setText(gobj.getString("mode"));
+
+
+
+
+                                        } catch (JSONException e) {
+                                            System.out.println("Could not extract gstatus object -->");
+                                            e.printStackTrace();
+
+                                        }
+                                        break;
+                                }
+                            }
+
+
+
+
+
                             //TableLayout tableLayout = (TableLayout) findViewById(R.id.detailsTable);
                             //tableLayout.removeAllViews();
-
+/*
                            try {
                                 SetValuesInTable(result);
                            }
                            catch (JSONException e){
                                 System.out.println("Could not set values in table for JSON Object");
                            }
+
+*/
 
                         }
                     }
@@ -112,18 +171,19 @@ public class MainActivity extends AppCompatActivity {
 public void SetValuesInTable(JSONObject jobj) throws JSONException{
     JSONObject dataset = jobj;
     Iterator<?> keys = dataset.keys();
+    TextView temp;
 
     while (keys.hasNext()){
         String mKey = (String) keys.next();
         switch (mKey){
-            case "location":
+   /*         case "location":
                 try{
                     JSONObject lobj = dataset.getJSONObject("location");
                     if (lobj != null){
                         Iterator<?> lkeys = lobj.keys();
                         while (lkeys.hasNext()){
                             int id = getResources().getIdentifier(String.valueOf(lkeys), "id", getPackageName());
-                            TextView temp = (TextView) findViewById(id);
+                            temp = (TextView) findViewById(id);
                             temp.setText(lobj.getString(String.valueOf(lkeys)));
                         }
                     }
@@ -134,7 +194,7 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                     break;
                 }
                 break;
-
+*/
             case "gstatus":
                 try{
                     JSONObject gobj = dataset.getJSONObject("gstatus");
@@ -142,38 +202,38 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                         Iterator<?> gKey = gobj.keys();
                         while (gKey.hasNext()){
                             if (String.valueOf(gKey) == "ltebw(mhz)"){
-                                TextView temp = (TextView) findViewById(R.id.ltebw);
+                                temp = (TextView) findViewById(R.id.ltebw);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
                             }
                             else if(String.valueOf(gKey) == "rsrp(dbm)pccrxdrssi"){
-                                TextView temp = (TextView) findViewById(R.id.pccrxdrssi);
+                                temp = (TextView) findViewById(R.id.pccrxdrssi);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
 
                             }
                             else if(String.valueOf(gKey) == "rsrp(dbm)pccrxmrssi"){
-                                TextView temp = (TextView) findViewById(R.id.pccrxrmrssi);
+                                temp = (TextView) findViewById(R.id.pccrxrmrssi);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
 
                             }
                             else if(String.valueOf(gKey) == "rsrq(db)"){
-                                TextView temp = (TextView) findViewById(R.id.grsrq);
+                                temp = (TextView) findViewById(R.id.grsrq);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
 
 
                             }
                             else if(String.valueOf(gKey) == "sinr(db)"){
-                                TextView temp = (TextView) findViewById(R.id.gsinr);
+                                temp = (TextView) findViewById(R.id.gsinr);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
                             }
 
                             else if(String.valueOf(gKey) == "mode"){
-                                TextView temp = (TextView) findViewById(R.id.gmode);
+                                temp = (TextView) findViewById(R.id.gmode);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
 
                             }
                             else{
                                 int id = getResources().getIdentifier(String.valueOf(gKey), "id", getPackageName());
-                                TextView temp = (TextView) findViewById(id);
+                                temp = (TextView) findViewById(id);
                                 temp.setText(gobj.getString(String.valueOf(gKey)));
                             }
 
@@ -184,11 +244,11 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                 catch (JSONException e){
                     System.out.println("Could not extract gstatus object -->");
                     e.printStackTrace();
-                    break;
+
                 }
                 break;
 
-
+/*
             case "serving":
                 try {
                     JSONArray sarr = dataset.getJSONArray("serving");
@@ -197,46 +257,46 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                         Iterator<?> sKey = sobj.keys();
                         while (sKey.hasNext()){
                             if (String.valueOf(sKey)=="EARFCN"){
-                                    TextView temp = (TextView) findViewById(R.id.searfcn);
+                                    temp = (TextView) findViewById(R.id.searfcn);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="MCC"){
-                                    TextView temp = (TextView) findViewById(R.id.smcc);
+                                    temp = (TextView) findViewById(R.id.smcc);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="MNC"){
-                                    TextView temp = (TextView) findViewById(R.id.smnc);
+                                    temp = (TextView) findViewById(R.id.smnc);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="TAC"){
-                                    TextView temp = (TextView) findViewById(R.id.stac);
+                                    temp = (TextView) findViewById(R.id.stac);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="CID"){
-                                    TextView temp = (TextView) findViewById(R.id.scid);
+                                    temp = (TextView) findViewById(R.id.scid);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="Bd"){
-                                    TextView temp = (TextView) findViewById(R.id.sbd);
+                                    temp = (TextView) findViewById(R.id.sbd);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="D"){
-                                    TextView temp = (TextView) findViewById(R.id.sd);
+                                    temp = (TextView) findViewById(R.id.sd);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="U"){
-                                    TextView temp = (TextView) findViewById(R.id.su);
+                                    temp = (TextView) findViewById(R.id.su);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="SNR"){
-                                    TextView temp = (TextView) findViewById(R.id.ssnr);
+                                    temp = (TextView) findViewById(R.id.ssnr);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="PCI"){
-                                    TextView temp = (TextView) findViewById(R.id.spci);
+                                    temp = (TextView) findViewById(R.id.spci);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="RSRQ"){
-                                    TextView temp = (TextView) findViewById(R.id.srsrq);
+                                    temp = (TextView) findViewById(R.id.srsrq);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="RSRP"){
-                                    TextView temp = (TextView) findViewById(R.id.srsrp);
+                                    temp = (TextView) findViewById(R.id.srsrp);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="RSSI"){
-                                    TextView temp = (TextView) findViewById(R.id.srssi);
+                                    temp = (TextView) findViewById(R.id.srssi);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                             else if(String.valueOf(sKey)=="RXLV"){
-                                    TextView temp = (TextView) findViewById(R.id.srxlv);
+                                    temp = (TextView) findViewById(R.id.srxlv);
                                     temp.setText(sobj.getString(String.valueOf(sKey)));}
                         }
                     }
@@ -256,39 +316,39 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                         Iterator<?> iteKey = iteobj.keys();
                         while (iteKey.hasNext()){
                             if (String.valueOf(iteKey)=="EARFCN"){
-                                TextView temp = (TextView) findViewById(R.id.iteearfcn);
+                                temp = (TextView) findViewById(R.id.iteearfcn);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="ThresholdLow"){
-                                TextView temp = (TextView) findViewById(R.id.thresholdlow);
+                                temp = (TextView) findViewById(R.id.thresholdlow);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="ThresholdHi"){
-                                TextView temp = (TextView) findViewById(R.id.thresholdhi);
+                                temp = (TextView) findViewById(R.id.thresholdhi);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="Priority"){
-                                TextView temp = (TextView) findViewById(R.id.priority);
+                                temp = (TextView) findViewById(R.id.priority);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="PCI"){
-                                TextView temp = (TextView) findViewById(R.id.itepci);
+                                temp = (TextView) findViewById(R.id.itepci);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="RSRQ"){
-                                TextView temp = (TextView) findViewById(R.id.itersrq);
+                                temp = (TextView) findViewById(R.id.itersrq);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="RSRP"){
-                                TextView temp = (TextView) findViewById(R.id.itersrp);
+                                temp = (TextView) findViewById(R.id.itersrp);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="RSSI"){
-                                TextView temp = (TextView) findViewById(R.id.iterssi);
+                                temp = (TextView) findViewById(R.id.iterssi);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                             else if (String.valueOf(iteKey)=="RXLV"){
-                                TextView temp = (TextView) findViewById(R.id.iterxlv);
+                                temp = (TextView) findViewById(R.id.iterxlv);
                                 temp.setText(iteobj.getString(String.valueOf(iteKey)));
                             }
                         }
@@ -309,23 +369,23 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                         Iterator<?> itaKey = itaobj1.keys();
                         while (itaKey.hasNext()){
                             if (String.valueOf(itaKey)=="PCI"){
-                                TextView temp = (TextView) findViewById(R.id.itapci1);
+                                temp = (TextView) findViewById(R.id.itapci1);
                                 temp.setText(itaobj1.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey)=="RSRQ"){
-                                TextView temp = (TextView) findViewById(R.id.itarsrq1);
+                                temp = (TextView) findViewById(R.id.itarsrq1);
                                 temp.setText(itaobj1.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey)=="RSRP"){
-                                TextView temp = (TextView) findViewById(R.id.itarsrp1);
+                                temp = (TextView) findViewById(R.id.itarsrp1);
                                 temp.setText(itaobj1.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey)=="RSSI"){
-                                TextView temp = (TextView) findViewById(R.id.itarssi1);
+                                temp = (TextView) findViewById(R.id.itarssi1);
                                 temp.setText(itaobj1.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey)=="RXLV"){
-                                TextView temp = (TextView) findViewById(R.id.itarxlv1);
+                                temp = (TextView) findViewById(R.id.itarxlv1);
                                 temp.setText(itaobj1.getString(String.valueOf(itaKey)));
                             }
 
@@ -334,23 +394,23 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                         Iterator<?> itaKey2 = itaobj2.keys();
                         while (itaKey.hasNext()){
                             if (String.valueOf(itaKey2)=="PCI"){
-                                TextView temp = (TextView) findViewById(R.id.itapci2);
+                                temp = (TextView) findViewById(R.id.itapci2);
                                 temp.setText(itaobj2.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey2)=="RSRQ"){
-                                TextView temp = (TextView) findViewById(R.id.itarsrq2);
+                                temp = (TextView) findViewById(R.id.itarsrq2);
                                 temp.setText(itaobj2.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey2)=="RSRP"){
-                                TextView temp = (TextView) findViewById(R.id.itarsrp2);
+                                temp = (TextView) findViewById(R.id.itarsrp2);
                                 temp.setText(itaobj2.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey2)=="RSSI"){
-                                TextView temp = (TextView) findViewById(R.id.itarssi2);
+                                temp = (TextView) findViewById(R.id.itarssi2);
                                 temp.setText(itaobj2.getString(String.valueOf(itaKey)));
                             }
                             else if (String.valueOf(itaKey2)=="RXLV"){
-                                TextView temp = (TextView) findViewById(R.id.itarxlv2);
+                                temp = (TextView) findViewById(R.id.itarxlv2);
                                 temp.setText(itaobj2.getString(String.valueOf(itaKey)));
                             }
 
@@ -363,7 +423,7 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
                     break;
                 }
                 break;
-
+*/
             default:
                 break;
 
