@@ -1,0 +1,51 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+<!--
+    <Button
+        android:id="@+id/expandableButton6"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#660066"
+        android:drawableRight="@android:drawable/arrow_down_float"
+        android:onClick="expandableButton6"
+        android:paddingRight="10dp"
+        android:text="SFCDs"
+        android:textColor="#fff" />
+
+     <com.github.aakira.expandablelayout.ExpandableRelativeLayout
+        android:id="@+id/expandableLayout6"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/expandableButton6"
+        android:background="#efe5ef"
+        android:padding="16dp"
+        app:ael_duration="400"
+        app:ael_expanded="false"
+        app:ael_interpolator="linearOutSlowIn"
+        app:ael_orientation="vertical">-->
+
+
+
+        <ListView
+            android:id="@+id/mSFCDList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginRight="8dp"
+             />
+
+
+
+
+<!--
+    </com.github.aakira.expandablelayout.ExpandableRelativeLayout>-->
+
+
+
+
+
+
+
+
+</RelativeLayout>

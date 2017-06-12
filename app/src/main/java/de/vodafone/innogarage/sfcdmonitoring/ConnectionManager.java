@@ -2,9 +2,13 @@ package de.vodafone.innogarage.sfcdmonitoring;
 
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -31,8 +35,56 @@ public class ConnectionManager {
         }
         //Start listening TCP messages - *New Thread*
         new ConnectionListenerForSFCD().start();
+       // new ConnectionCheckerThread().start();
     }
 
+/*
+
+    public void sendToAll(JSONObject msg){
+
+        for(Connection con : connections){
+
+            con.sendMessage(msg);
+        }
+    }
+    /**
+     * Thread Class
+     *
+     * @author Steffen.Ryll
+     */
+    private class ConnectionCheckerThread extends Thread {
+
+        public void run() {
+            while (true) {
+
+                if(!connections.isEmpty()){
+
+                    for(Connection con : connections){
+
+                        if(con.isClose()){
+
+                            connections.remove(con);
+                        }
+                    }
+
+                    JSONObject msg = new JSONObject();
+                    try {
+                        msg.put("msgType","areualive");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                   // sendToAll(msg);
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     public void sendInvitation(){
         new Broadcaster().start();
@@ -88,6 +140,41 @@ public class ConnectionManager {
 
     }
 
+    public void clearConnections(){
+        connections.clear();
+    }
+
+   /* private class ConnectionCheckerThread extends Thread {
+
+        public void run() {
+            while (true) {
+
+                if(!connections.isEmpty()){
+
+                    for(Connection con : connections){
+
+                        if(con.isClose()){
+
+                            connections.remove(con);
+                        }
+                    }
+
+
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    public void setIsServerOn(boolean status) {
+        ServerOn = status;
+    }*/
 }
 
 

@@ -1,23 +1,45 @@
 package de.vodafone.innogarage.sfcdmonitoring;
 
+import android.Manifest;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.aakira.expandablelayout.ExpandableRelativeLayout;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,8 +52,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
-    ExpandableRelativeLayout expandableLayout1, expandableLayout2, expandableLayout3, expandableLayout4, expandableLayout5;
+public class MainActivity extends AppCompatActivity
+        implements
+        OnMapReadyCallback,
+        GoogleMap.OnMyLocationButtonClickListener,
+        ActivityCompat.OnRequestPermissionsResultCallback{
+    ExpandableRelativeLayout expandableLayout1, expandableLayout2, expandableLayout3, expandableLayout4, expandableLayout5, expandableLayout6;
     //Define socket variables (ports)
     public static boolean debugMode = true;
     public static int socketPortForBroadcast = 45555;
@@ -44,10 +70,14 @@ public class MainActivity extends AppCompatActivity {
     Context globalContext;
 
 
-    private Handler handler = new Handler();
-    public ListView msgView;
-    public ArrayAdapter<String> msgList;
-    public ArrayList<String> list;
+    //------------Map Var---------------------------------------
+    private GoogleMap mMap;
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private boolean mPermissionDenied = false;
+
+
+    //---------------------------------------------------------
 
 
 
@@ -56,22 +86,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Load Map Fragment
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync((OnMapReadyCallback) this);
+
         globalContext = this;
-        /*---------------List of messages initialization - MSG-----------------*/
-        /*msgView = (ListView) findViewById(R.id.lv1);
-        msgList = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1);
-        msgView.setAdapter(msgList);*/
 
-        final Button button = (Button) findViewById(R.id.buttonInvitation);
-        button.setOnClickListener(new View.OnClickListener(){
-
-            public void onClick(View v){
-
-                conMan.sendInvitation();
-            }
-        });
-
+        //LayoutInflater inflater = (LayoutInflater) globalContext.getSystemService
+                //(Context.LAYOUT_INFLATER_SERVICE);
+        //final LinearLayout ll = (LinearLayout) inflater.inflate(R.layout.clients_list, null);
 
         timerTask = new TimerTask() {
 
@@ -79,13 +104,21 @@ public class MainActivity extends AppCompatActivity {
                 new ScannerTask() {
 
                     protected void onPostExecute(JSONObject result) {
+                        double lat = 0;
+                        double longi = 0;
+                        int snr = 0;
+                        int mid;
 
                         if (!cons.isEmpty()&&result!=null) {
 
                             ListView listDevices = (ListView) findViewById(R.id.mSFCDList);
                             listDevices.setAdapter(new ListViewAdapter(globalContext, conMan));
+
                             Iterator<?> keys = result.keys();
+                            BitmapDescriptor mmicon;
+                            ImageView imgtemp;
                             TextView temp;
+                            Bitmap bImage;
                             while (keys.hasNext()) {
                                 String mKey = (String) keys.next();
                                 switch (mKey) {
@@ -105,6 +138,31 @@ public class MainActivity extends AppCompatActivity {
                                                 temp.setText(gobj.getString("sinr(db)"));
                                                 temp = (TextView) findViewById(R.id.gmode);
                                                 temp.setText(gobj.getString("mode"));
+
+                                                imgtemp = (ImageView) findViewById(R.id.stateLTE);
+
+                                                //imgtemp.setImageDrawable(getResources().getDrawable(R.drawable.green));
+
+
+                                                //imgtemp = (ImageView) ll.findViewById(R.id.stateLTE);
+
+                                               // imgtemp.setBackgroundResource(R.drawable.red);
+                                                //setContentView(ll);
+
+                                                /*
+                                                if(gobj.getString("mode")=="ONLINE"){
+
+                                                    imgtemp = (ImageView) findViewById(R.id.stateLTE);
+                                                    imgtemp.setImageResource(R.drawable.green);
+
+                                                    }else{
+
+                                                    imgtemp = (ImageView) findViewById(R.id.stateLTE);
+                                                    imgtemp.setImageResource(R.drawable.red);
+
+                                                    }*/
+
+
                                                 temp = (TextView) findViewById(R.id.ltecastate);
                                                 temp.setText(gobj.getString("ltecastate"));
                                                 temp = (TextView) findViewById(R.id.cellid);
@@ -141,6 +199,8 @@ public class MainActivity extends AppCompatActivity {
                                                 temp.setText(gobj.getString("pccrxdrssi"));
                                                 temp = (TextView) findViewById(R.id.pccrxrmrssi);
                                                 temp.setText(gobj.getString("pccrxmrssi"));
+
+
                                             }
 
                                         } catch (JSONException e) {
@@ -184,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                 temp = (TextView) findViewById(R.id.ssnr);
                                                 temp.setText(sobj.getString("SNR"));
+                                                snr = sobj.getInt("SNR");
 
                                                 temp = (TextView) findViewById(R.id.spci);
                                                 temp.setText(sobj.getString("PCI"));
@@ -320,12 +381,15 @@ public class MainActivity extends AppCompatActivity {
                                                 temp.setText(lobj.getString("track"));
                                                 temp = (TextView) findViewById(R.id.longitude);
                                                 temp.setText(lobj.getString("longitude"));
+                                                longi = lobj.getDouble("longitude");
                                                 temp = (TextView) findViewById(R.id.latitude);
                                                 temp.setText(lobj.getString("latitude"));
+                                                lat = lobj.getDouble("latitude");
                                                 temp = (TextView) findViewById(R.id.satellites);
                                                 temp.setText(lobj.getString("satellites"));
                                                 temp = (TextView) findViewById(R.id.mode);
                                                 temp.setText(lobj.getString("mode"));
+
 
 
                                                 }
@@ -340,37 +404,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
-
                                 }
 
 
 
-
-
-
-
-
                             }
-
-
-
-
-
-                            //TableLayout tableLayout = (TableLayout) findViewById(R.id.detailsTable);
-                            //tableLayout.removeAllViews();
-/*
-                           try {
-                                SetValuesInTable(result);
-                           }
-                           catch (JSONException e){
-                                System.out.println("Could not set values in table for JSON Object");
-                           }
-
-*/
+                            //Displaying markers
+                            displayMarker(lat, longi, snr);
 
                         }
                     }
@@ -385,401 +425,6 @@ public class MainActivity extends AppCompatActivity {
     }
     /*------------Methods for displaying the data on the list--------------*/
 
-
-
-public void SetValuesInTable(JSONObject jobj) throws JSONException{
-    JSONObject dataset = jobj;
-    Iterator<?> keys = dataset.keys();
-    TextView temp;
-
-    while (keys.hasNext()){
-        String mKey = (String) keys.next();
-        switch (mKey){
-   /*         case "location":
-                try{
-                    JSONObject lobj = dataset.getJSONObject("location");
-                    if (lobj != null){
-                        Iterator<?> lkeys = lobj.keys();
-                        while (lkeys.hasNext()){
-                            int id = getResources().getIdentifier(String.valueOf(lkeys), "id", getPackageName());
-                            temp = (TextView) findViewById(id);
-                            temp.setText(lobj.getString(String.valueOf(lkeys)));
-                        }
-                    }
-                }
-                catch (JSONException e){
-                    System.out.println("Could not extract location object -->");
-                    e.printStackTrace();
-                    break;
-                }
-                break;
-*/
-            case "gstatus":
-                try{
-                    JSONObject gobj = dataset.getJSONObject("gstatus");
-                    if(gobj!= null){
-                        Iterator<?> gKey = gobj.keys();
-                        while (gKey.hasNext()){
-                            if (String.valueOf(gKey) == "ltebw(mhz)"){
-                                temp = (TextView) findViewById(R.id.ltebw);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-                            }
-                            else if(String.valueOf(gKey) == "rsrp(dbm)pccrxdrssi"){
-                                temp = (TextView) findViewById(R.id.pccrxdrssi);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-
-                            }
-                            else if(String.valueOf(gKey) == "rsrp(dbm)pccrxmrssi"){
-                                temp = (TextView) findViewById(R.id.pccrxrmrssi);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-
-                            }
-                            else if(String.valueOf(gKey) == "rsrq(db)"){
-                                temp = (TextView) findViewById(R.id.grsrq);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-
-
-                            }
-                            else if(String.valueOf(gKey) == "sinr(db)"){
-                                temp = (TextView) findViewById(R.id.gsinr);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-                            }
-
-                            else if(String.valueOf(gKey) == "mode"){
-                                temp = (TextView) findViewById(R.id.gmode);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-
-                            }
-                            else{
-                                int id = getResources().getIdentifier(String.valueOf(gKey), "id", getPackageName());
-                                temp = (TextView) findViewById(id);
-                                temp.setText(gobj.getString(String.valueOf(gKey)));
-                            }
-
-
-                        }
-                    }
-                }
-                catch (JSONException e){
-                    System.out.println("Could not extract gstatus object -->");
-                    e.printStackTrace();
-
-                }
-                break;
-
-/*
-            case "serving":
-                try {
-                    JSONArray sarr = dataset.getJSONArray("serving");
-                    if(sarr!=null){
-                        JSONObject sobj= sarr.getJSONObject(0);
-                        Iterator<?> sKey = sobj.keys();
-                        while (sKey.hasNext()){
-                            if (String.valueOf(sKey)=="EARFCN"){
-                                    temp = (TextView) findViewById(R.id.searfcn);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="MCC"){
-                                    temp = (TextView) findViewById(R.id.smcc);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="MNC"){
-                                    temp = (TextView) findViewById(R.id.smnc);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="TAC"){
-                                    temp = (TextView) findViewById(R.id.stac);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="CID"){
-                                    temp = (TextView) findViewById(R.id.scid);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="Bd"){
-                                    temp = (TextView) findViewById(R.id.sbd);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="D"){
-                                    temp = (TextView) findViewById(R.id.sd);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="U"){
-                                    temp = (TextView) findViewById(R.id.su);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="SNR"){
-                                    temp = (TextView) findViewById(R.id.ssnr);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="PCI"){
-                                    temp = (TextView) findViewById(R.id.spci);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="RSRQ"){
-                                    temp = (TextView) findViewById(R.id.srsrq);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="RSRP"){
-                                    temp = (TextView) findViewById(R.id.srsrp);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="RSSI"){
-                                    temp = (TextView) findViewById(R.id.srssi);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                            else if(String.valueOf(sKey)=="RXLV"){
-                                    temp = (TextView) findViewById(R.id.srxlv);
-                                    temp.setText(sobj.getString(String.valueOf(sKey)));}
-                        }
-                    }
-
-                }catch (JSONException e){
-                    System.out.println("Could not extract serving object -->");
-                    e.printStackTrace();
-                    break;
-                }
-                break;
-
-            case "interfreq":
-                try {
-                    JSONArray itearr = dataset.getJSONArray("interfreq");
-                    if(itearr!=null){
-                        JSONObject iteobj= itearr.getJSONObject(0);
-                        Iterator<?> iteKey = iteobj.keys();
-                        while (iteKey.hasNext()){
-                            if (String.valueOf(iteKey)=="EARFCN"){
-                                temp = (TextView) findViewById(R.id.iteearfcn);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="ThresholdLow"){
-                                temp = (TextView) findViewById(R.id.thresholdlow);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="ThresholdHi"){
-                                temp = (TextView) findViewById(R.id.thresholdhi);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="Priority"){
-                                temp = (TextView) findViewById(R.id.priority);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="PCI"){
-                                temp = (TextView) findViewById(R.id.itepci);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="RSRQ"){
-                                temp = (TextView) findViewById(R.id.itersrq);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="RSRP"){
-                                temp = (TextView) findViewById(R.id.itersrp);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="RSSI"){
-                                temp = (TextView) findViewById(R.id.iterssi);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                            else if (String.valueOf(iteKey)=="RXLV"){
-                                temp = (TextView) findViewById(R.id.iterxlv);
-                                temp.setText(iteobj.getString(String.valueOf(iteKey)));
-                            }
-                        }
-                    }
-
-                }catch (JSONException e){
-                    System.out.println("Could not extract interfreq object -->");
-                    e.printStackTrace();
-                    break;
-                }
-                break;
-
-            case "intrafreq":
-                try {
-                    JSONArray itaarr = dataset.getJSONArray("intrafreq");
-                    if(itaarr!=null){
-                        JSONObject itaobj1= itaarr.getJSONObject(0);
-                        Iterator<?> itaKey = itaobj1.keys();
-                        while (itaKey.hasNext()){
-                            if (String.valueOf(itaKey)=="PCI"){
-                                temp = (TextView) findViewById(R.id.itapci1);
-                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey)=="RSRQ"){
-                                temp = (TextView) findViewById(R.id.itarsrq1);
-                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey)=="RSRP"){
-                                temp = (TextView) findViewById(R.id.itarsrp1);
-                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey)=="RSSI"){
-                                temp = (TextView) findViewById(R.id.itarssi1);
-                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey)=="RXLV"){
-                                temp = (TextView) findViewById(R.id.itarxlv1);
-                                temp.setText(itaobj1.getString(String.valueOf(itaKey)));
-                            }
-
-                        }
-                        JSONObject itaobj2= itaarr.getJSONObject(1);
-                        Iterator<?> itaKey2 = itaobj2.keys();
-                        while (itaKey.hasNext()){
-                            if (String.valueOf(itaKey2)=="PCI"){
-                                temp = (TextView) findViewById(R.id.itapci2);
-                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey2)=="RSRQ"){
-                                temp = (TextView) findViewById(R.id.itarsrq2);
-                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey2)=="RSRP"){
-                                temp = (TextView) findViewById(R.id.itarsrp2);
-                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey2)=="RSSI"){
-                                temp = (TextView) findViewById(R.id.itarssi2);
-                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
-                            }
-                            else if (String.valueOf(itaKey2)=="RXLV"){
-                                temp = (TextView) findViewById(R.id.itarxlv2);
-                                temp.setText(itaobj2.getString(String.valueOf(itaKey)));
-                            }
-
-                        }
-                    }
-
-                }catch (JSONException e){
-                    System.out.println("Could not extract interfreq object -->");
-                    e.printStackTrace();
-                    break;
-                }
-                break;
-*/
-            default:
-                break;
-
-
-        }
-
-    }
-
-
-}
-
-
-
-
-/*
-
-    public void SetValuesInTable(JSONObject jobj) throws JSONException{
-        JSONObject dataset = jobj;
-        Iterator<?> keys = dataset.keys();
-
-
-        //TableLayout mTable = (TableLayout) findViewById(R.id.detailsTable);
-        //mTable.removeAllViews();
-        while(keys.hasNext()) {
-
-            String mKey = (String) keys.next();
-
-            switch (mKey) {
-                case "location":
-                    JSONObject locObject = dataset.getJSONObject("location");
-                    Iterator<?> locKey = locObject.keys();
-
-                    while (locKey.hasNext()){
-                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
-
-                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-                        TextView tv;
-                        String iKey = (String) locKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
-                        tv.setText(iKey);
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(locObject.getString(iKey));
-
-                        detailsTable.addView(tableRow);
-                    }
-
-                    break;
-
-                case "intrafreq":
-                    JSONObject inaObject = dataset.getJSONArray("intrafreq").getJSONObject(0);
-                    Iterator<?> inaKey = inaObject.keys();
-
-                    while (inaKey.hasNext()){
-                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
-
-                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-                        TextView tv;
-                        String iKey = (String) inaKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(iKey);
-                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
-                        tv.setText(inaObject.getString(iKey));
-
-                        detailsTable.addView(tableRow);
-                    }
-
-                    break;
-
-                case "interfreq":
-                    JSONObject ineObject = dataset.getJSONArray("interfreq").getJSONObject(0);
-                    Iterator<?> ineKey = ineObject.keys();
-
-                    while (ineKey.hasNext()){
-                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
-
-                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-                        TextView tv;
-                        String iKey = (String) ineKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(iKey);
-                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
-                        tv.setText(ineObject.getString(iKey));
-
-                        detailsTable.addView(tableRow);
-                    }
-
-                case "serving":
-                    JSONObject servObject = dataset.getJSONArray("serving").getJSONObject(0);
-                    Iterator<?> sKey = servObject.keys();
-
-                    while (sKey.hasNext()){
-                         TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
-
-                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-                        TextView tv;
-                        String iKey = (String) sKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(iKey);
-                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
-                        tv.setText(servObject.getString(iKey));
-
-                        detailsTable.addView(tableRow);
-                    }
-
-                case "gstatus":
-                    JSONObject gstatObject = dataset.getJSONObject("gstatus");
-                    Iterator<?> gKey = gstatObject.keys();
-
-                    while (gKey.hasNext()){
-                        TableLayout detailsTable = (TableLayout) findViewById(R.id.detailsTable);
-
-                        TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-                        TextView tv;
-                        String iKey = (String) gKey.next();
-                        tv = (TextView) tableRow.findViewById(R.id.dataKey);
-                        tv.setText(iKey);
-                        tv = (TextView) tableRow.findViewById(R.id.dataValue);
-                        tv.setText(gstatObject.getString(iKey));
-
-                        detailsTable.addView(tableRow);
-                    }
-                default:
-
-                    break;
-            }
-
-
-        }
-
-
-        //final TableRow tableRow = (TableRow) getLayoutInflater().inflate(R.layout.table_row, null);
-
-
-
-
-
-    }*/
 
 
 
@@ -827,7 +472,7 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
 
             if (con.isFocus()) {
 
-                button.setBackgroundColor(Color.GREEN);
+                button.setBackgroundColor(getResources().getColor(R.color.lightGreen));
                 button.setText("Selected");
             } else {
 
@@ -878,25 +523,167 @@ public void SetValuesInTable(JSONObject jobj) throws JSONException{
         expandableLayout5 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout5);
         expandableLayout5.toggle(); // toggle expand and collapse
     }
+    public void expandableButton6(View view) {
+        expandableLayout6 = (ExpandableRelativeLayout) findViewById(R.id.expandableLayout6);
+        expandableLayout6.toggle(); // toggle expand and collapse
+    }
 
 
 
 
 
+    //-------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------Map Code------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        Log.d("MapReady", "map is ready");
+        // Add a marker in Sydney and move the camera
+        mMap.setOnMyLocationButtonClickListener(this);
+        enableMyLocation();
+
+    }
+    //----------------------------------------------------------------------------My current location-----------------------------------------------------------
+    private void enableMyLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission to access the location is missing.
+            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
+                    Manifest.permission.ACCESS_FINE_LOCATION, true);
+        } else if (mMap != null) {
+            // Access to the location has been granted to the app.
+            mMap.setMyLocationEnabled(true);
+        }
+    }
 
 
 
+    @Override
+    public boolean onMyLocationButtonClick() {
+        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        // Return false so that we don't consume the event and the default behavior still occurs
+        // (the camera animates to the user's current position).
+        return false;
+    }
 
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+            return;
+        }
+
+        if (PermissionUtils.isPermissionGranted(permissions, grantResults,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            // Enable the my location layer if the permission has been granted.
+            enableMyLocation();
+        } else {
+            // Display the missing permission error dialog when the fragments resume.
+            mPermissionDenied = true;
+        }
+    }
+
+    @Override
+    protected void onResumeFragments() {
+        super.onResumeFragments();
+        if (mPermissionDenied) {
+            // Permission was not granted, display error dialog.
+            showMissingPermissionError();
+            mPermissionDenied = false;
+        }
+    }
+
+    /**
+     * Displays a dialog with error message explaining that the location permission is missing.
+     */
+    private void showMissingPermissionError() {
+        PermissionUtils.PermissionDeniedDialog
+                .newInstance(true).show(getSupportFragmentManager(), "dialog");
+    }
 
 
+    //---------------------------------------------------------------------------- End my Location-----------------------------------------------------------
 
 
+    //---------------------------------------------------------------------------- Display a Marker on the Map-----------------------------------------------
+    public void displayMarker(final Double Lati, final Double Longi, int snr){
+        final long TimeToLive = 2000;
+        final BitmapDescriptor myicon;
+        int id = 0;
+        if (snr <= 10){
+            id = getResources().getIdentifier("red", "drawable", getPackageName());
+        }
+        else if(snr >= 20){
+            id = getResources().getIdentifier("orange", "drawable", getPackageName());
+        }
+        else{
+            id = getResources().getIdentifier("green", "drawable", getPackageName());
+        }
+
+        myicon = BitmapDescriptorFactory.fromResource(id);
+
+        runOnUiThread(new Runnable(){
+            @Override
+            public void run(){
+                LatLng pos = new LatLng(Lati,Longi);
+                Marker mar = mMap.addMarker(new MarkerOptions()
+                        .position(pos)
+                        .icon(myicon)
+                );
+                fadeTime(TimeToLive,mar);
+            }
+
+        });
+    }
+
+/*-----Customize characteristics of the markers: Size and time to fade--------*/
 
 
+    public void fadeTime(long duration, Marker marker) {
+
+        final Marker myMarker = marker;
+        ValueAnimator myAnim = ValueAnimator.ofFloat(1, 0);
+        myAnim.setDuration(duration);
+        myAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                myMarker.setAlpha((float) animation.getAnimatedValue());
+            }
+        });
+        myAnim.start();
+    }
 
 
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------End Map Code-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_invite:
+                conMan.clearConnections();
+                conMan.sendInvitation();
+                Toast.makeText(MainActivity.this,"Invitation sent",Toast.LENGTH_LONG).show();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
 
 }

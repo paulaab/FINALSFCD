@@ -9,56 +9,69 @@
     android:background="#f5f1e0"
     >
 
+
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <!--Layout for buttons that send warnings and messages-->
         <LinearLayout
-            android:layout_width="fill_parent"
+            android:layout_width="458dp"
             android:layout_height="fill_parent"
-            android:layout_weight="2"
 
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:weightSum="1">
 
-            <Button
+           <!-- <Button
                 android:id="@+id/buttonInvitation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="20dp"
                 android:background="#36b9b2"
-                android:textStyle="bold"
                 android:text="Invite"
                 android:textColor="#ffff"
-               />
+                android:textStyle="bold" />-->
 
-
-
+<!--
             <ListView
                 android:id="@+id/mSFCDList"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="178dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginTop="70dp" />
+                -->
 
 
 
+            <include
+                layout="@layout/table_details"
+                android:layout_width="match_parent"
+                android:layout_height="356dp"
+                android:layout_weight="0.65" />
 
 
         </LinearLayout>
 
         <!-- Layout for the map itself-->
         <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_weight="1">
-
-            <include layout="@layout/table_details"/>
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
 
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                tools:context="de.vodafone.innogarage.sfcdmonitoring.MainActivity" />
         </LinearLayout>
 
 
     </LinearLayout>
+
+
 
 </RelativeLayout>
